@@ -87,3 +87,34 @@ public class SQLInjectionServlet extends AbstractServlet {
         return result;
     }
 }
+
+    private String selectUserstwo(String name, String password, HttpServletRequest req) {
+        
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        String result = getErrMsg("msg.error.user.not.exist", req.getLocale());
+        try {
+            conn = DBClient.getConnection();
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT name, secret FROM users WHERE ispublic = 'true' AND name='" + name
+                    + "' AND password='" + password + "'");
+            StringBuilder sb = new StringBuilder();
+            while (rs.next()) {
+                sb.append("<tr><td>" + rs.getString("name") + "</td><td>" + rs.getString("secret") + "</td></tr>");
+            }
+            if (sb.length() > 0) {
+                result = "<table class=\"table table-striped table-bordered table-hover\" style=\"font-size:small;\"><th>"
+                        + getMsg("label.name", req.getLocale()) + "</th><th>"
+                        + getMsg("label.secret", req.getLocale()) + "</th>" + sb.toString() + "</table>";
+            }
+        } catch (Exception e) {
+            log.error("Exception occurs: ", e);
+        } finally {
+            Closer.close(rs);
+            Closer.close(stmt);
+            Closer.close(conn);
+        }
+        return result;
+    }
+}
